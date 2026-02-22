@@ -1,0 +1,84 @@
+# Smart Parking - Full Stack
+# Run: docker-compose up
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root_secret
+      MYSQL_DATABASE: smart_parking
+      MYSQL_USER: parking_user
+      MYSQL_PASSWORD: parking_secret
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  api:
+    build:
+      context: ./BE
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: smart_parking
+      DB_USER: parking_user
+      DB_PASSWORD: parking_secret
+      JWT_SECRET: smart-parking-jwt-secret-change-in-production
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    entrypoint: ["/bin/sh", "/app/bin/entrypoint-api.sh"]
+
+  worker:
+    build:
+      context: ./BE
+      dockerfile: Dockerfile
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: smart_parking
+      DB_USER: parking_user
+      DB_PASSWORD: parking_secret
+      JWT_SECRET: smart-parking-jwt-secret-change-in-production
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      api:
+        condition: service_started
+    command: php bin/stale-checker.php
+
+  websocket:
+    build:
+      context: ./BE
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      WS_HOST: 0.0.0.0
+      WS_PORT: 8081
+    depends_on:
+      redis:
+        condition: service_started
+    command: php bin/websocket-server.php
+
+volumes:
+  mysql_data:
