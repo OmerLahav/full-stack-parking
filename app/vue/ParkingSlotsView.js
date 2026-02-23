@@ -119,12 +119,14 @@ export function mountParkingSlotsView() {
 				const date = this.selectedDate;
 				const slotStart = `${date}T${slot.start}:00`;
 				const slotEnd = `${date}T${slot.end}:00`;
+				// Normalize API datetimes (MySQL "Y-m-d H:i:s") to ISO format for comparison
+				const norm = (dt) => (dt ? String(dt).replace(' ', 'T') : '');
 				return this.reservations.find(
 					(r) =>
 						parseInt(r.spot_id) === parseInt(spotId) &&
 						r.status === 'Booked' &&
-						r.start_time < slotEnd &&
-						r.end_time > slotStart
+						norm(r.start_time) < slotEnd &&
+						norm(r.end_time) > slotStart
 				);
 			},
 			isMyReservation(reservation) {
