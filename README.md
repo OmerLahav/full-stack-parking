@@ -94,19 +94,20 @@ When two users try to reserve the same spot at the same time:
 - MySQL 8
 - Redis
 - Composer
+- Node.js (for frontend)
 
 ### Setup
 
 1. Copy environment file:
    ```bash
-   cp BE/.env.example BE/.env
+   cp .env.example .env
    ```
 
-2. Edit `BE/.env` with your database and Redis settings
+2. Edit `.env` with your database and Redis settings
 
-3. Install dependencies:
+3. Install backend dependencies:
    ```bash
-   cd BE && composer install
+   composer install
    ```
 
 4. Run migrations:
@@ -114,10 +115,15 @@ When two users try to reserve the same spot at the same time:
    php bin/migrate.php
    ```
 
-5. Start services (in separate terminals):
+5. Build frontend (for production-style serving):
    ```bash
-   # API
-   php -S localhost:8080 -t public
+   npm run build
+   ```
+
+6. Start services (in separate terminals):
+   ```bash
+   # API + SPA (serves from public/)
+   php -S localhost:8080 -t public public/router.php
 
    # Worker
    php bin/stale-checker.php
@@ -126,10 +132,49 @@ When two users try to reserve the same spot at the same time:
    php bin/websocket-server.php
    ```
 
-6. Frontend (from project root):
+   Or for frontend development with hot reload:
    ```bash
-   cd FE && npm run dev
+   # Terminal 1: API
+   php -S localhost:8080 -t public public/router.php
+
+   # Terminal 2: Frontend dev server (proxies API to 8080)
+   npm run dev
    ```
+   Then open http://localhost:5173
+
+   When using the PHP server with built frontend, open http://localhost:8080
+
+## Project Structure
+
+```
+├── public/                 # Web root (API + built SPA)
+│   ├── api.php             # REST API entry point
+│   ├── router.php          # Routes API vs SPA
+│   ├── index.html          # SPA (built from root)
+│   └── assets/             # Frontend build output
+├── app/                    # Frontend source (Vanilla JS + Vue)
+│   ├── main.js
+│   ├── core/, pages/, services/
+│   └── style.css
+├── index.html              # Frontend entry (source)
+├── vite.config.js
+├── src/                    # Backend PHP
+│   ├── Config/
+│   ├── Database/
+│   ├── Middleware/
+│   ├── Repository/
+│   ├── Service/
+│   └── Constants/
+├── bin/
+│   ├── migrate.php
+│   ├── stale-checker.php
+│   ├── websocket-server.php
+│   └── entrypoint-api.sh
+├── migrations/
+├── composer.json
+├── package.json
+└── docker-compose.yml
+```
 
 ## Error Handling
 

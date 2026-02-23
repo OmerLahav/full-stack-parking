@@ -26,7 +26,7 @@ services:
 
   api:
     build:
-      context: ./BE
+      context: .
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
@@ -48,7 +48,7 @@ services:
 
   worker:
     build:
-      context: ./BE
+      context: .
       dockerfile: Dockerfile
     environment:
       DB_HOST: mysql
@@ -66,7 +66,7 @@ services:
 
   websocket:
     build:
-      context: ./BE
+      context: .
       dockerfile: Dockerfile
     ports:
       - "8081:8081"
