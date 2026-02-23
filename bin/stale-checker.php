@@ -25,8 +25,7 @@ if (file_exists($envFile)) {
 
 require $baseDir . '/vendor/autoload.php';
 
-use App\Config\Config;
-use App\Database\Database;
+use App\Constants\ReservationStatus;
 use App\Repository\ReservationRepository;
 use App\Repository\ParkingSpotRepository;
 use App\Service\PubSub\RedisPubSub;
@@ -57,8 +56,8 @@ while (true) {
             );
             echo "[" . date('Y-m-d H:i:s') . "] {$logMsg}\n";
 
-            $reservation['status'] = 'Completed';
-            $pubSub->publish('reservation_change', [
+            $reservation['status'] = ReservationStatus::COMPLETED;
+            $pubSub->publish(ReservationStatus::WS_CHANNEL, [
                 'change' => 'completed',
                 'reservation' => $reservation,
             ]);

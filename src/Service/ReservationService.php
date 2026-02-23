@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Constants\ReservationStatus;
 use App\Repository\ParkingSpotRepository;
 use App\Repository\ReservationRepository;
 use App\Service\PubSub\PubSubInterface;
@@ -80,7 +81,7 @@ class ReservationService
         if ((int) $reservation['user_id'] !== $userId) {
             throw new \InvalidArgumentException('You can only complete your own reservations');
         }
-        if ($reservation['status'] !== 'Booked') {
+        if ($reservation['status'] !== ReservationStatus::BOOKED) {
             throw new \InvalidArgumentException('Reservation is already completed');
         }
 
@@ -89,7 +90,7 @@ class ReservationService
             throw new \RuntimeException('Failed to complete reservation');
         }
 
-        $reservation['status'] = 'Completed';
+        $reservation['status'] = ReservationStatus::COMPLETED;
         $this->publishReservationChange('completed', $reservation);
 
         return $reservation;
@@ -117,7 +118,7 @@ class ReservationService
     private function publishReservationChange(string $change, array $reservation): void
     {
         if ($this->pubSub) {
-            $this->pubSub->publish('reservation_change', [
+            $this->pubSub->publish(ReservationStatus::WS_CHANNEL, [
                 'change' => $change,
                 'reservation' => $reservation,
             ]);

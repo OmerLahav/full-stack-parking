@@ -3,7 +3,22 @@
  * Keeps original Vanilla JS files (SlotsPage, Router, etc.) unchanged.
  */
 
-import { mountParkingSlotsView } from './ParkingSlotsView';
+import { createApp } from 'vue';
+import ParkingSlotsView from './ParkingSlotsView.vue';
+
+function mountParkingSlotsView() {
+	const container = document.getElementById('parking-slots-view');
+	if (!container) {
+		console.warn('[ParkingSlotsView] Container #parking-slots-view not found');
+		return;
+	}
+	try {
+		createApp(ParkingSlotsView).mount(container);
+	} catch (err) {
+		console.error('[ParkingSlotsView] Mount failed:', err);
+		container.innerHTML = `<div class="slot-error">Failed to load parking slots: ${err.message}</div>`;
+	}
+}
 
 function tryMount() {
 	const container = document.getElementById('parking-slots-view');
