@@ -35,6 +35,12 @@ class ReservationService
         try {
             $pdo->beginTransaction();
 
+            // Lock the spot row first - serializes concurrent requests even when slot is empty
+            $lockedSpot = $this->parkingSpotRepository->lockForUpdate($spotId);
+            if (!$lockedSpot) {
+                throw new \InvalidArgumentException('Invalid spot_id');
+            }
+
             // Lock overlapping rows - blocks concurrent requests until we commit/rollback
             $overlapping = $this->reservationRepository->findOverlappingBooked(
                 $spotId,

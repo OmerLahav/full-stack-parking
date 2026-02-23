@@ -24,4 +24,17 @@ class ParkingSpotRepository
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ?: null;
     }
+
+    /**
+     * Lock the parking spot row for update. Must be called within a transaction.
+     * Serializes concurrent bookings for the same spot (including when slot is empty).
+     */
+    public function lockForUpdate(int $id): ?array
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare('SELECT id, spot_number, floor_number, type FROM parking_spots WHERE id = ? FOR UPDATE');
+        $stmt->execute([$id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
 }

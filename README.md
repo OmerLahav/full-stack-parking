@@ -56,10 +56,10 @@ Example reservation payload:
 
 When two users try to reserve the same spot at the same time:
 1. Both requests enter a database transaction
-2. The first request runs `SELECT ... FOR UPDATE` on overlapping reservations for that spot
-3. This acquires row-level locks; the second request blocks
-4. The first request finds no overlaps, inserts the reservation, commits
-5. The second request unblocks, finds the new reservation overlapping, returns **409 Conflict** with a user-friendly message: *"This time slot is no longer available. Another user has just reserved it."*
+2. The first request locks the parking spot row (`SELECT ... FOR UPDATE` on `parking_spots`) — this serializes all bookings for that spot, including when the slot is empty
+3. The second request blocks on the same lock
+4. The first request checks for overlapping reservations (finds none), inserts, commits — releases the lock
+5. The second request unblocks, finds the new reservation overlapping, rolls back, returns **409 Conflict** with: *"This time slot is no longer available. Another user has just reserved it."*
 
 **Why not optimistic concurrency?** Optimistic locking (version column, retry) adds complexity and can still fail under high contention. Database-level locking is the standard, reliable approach for this use case.
 
