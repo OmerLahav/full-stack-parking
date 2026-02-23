@@ -46,6 +46,7 @@ export function mountParkingSlotsView() {
 				ws: null,
 				dateChangeHandler: null,
 				selectChangeHandler: null,
+				baseDateForLabels: null, // "today" from dropdown for consistent labels
 			};
 		},
 		computed: {
@@ -73,6 +74,8 @@ export function mountParkingSlotsView() {
 			// Sync with Vanilla JS date picker
 			const picker = document.getElementById('date-select');
 			this.selectedDate = picker?.value || new Date().toISOString().split('T')[0];
+			// Use dropdown's "today" (first option) so grid labels match dropdown
+			this.baseDateForLabels = picker?.options[0]?.value || null;
 			this.listenForDateChange();
 			this.connectWebSocket();
 			await this.loadSpots();
@@ -238,7 +241,9 @@ export function mountParkingSlotsView() {
 			formatDateLabel(isoDate) {
 				if (!isoDate) return '';
 				const d = new Date(isoDate + 'T12:00:00');
-				const today = new Date();
+				// Use dropdown's "today" so labels match (Today/Tomorrow/Day after tomorrow)
+				const base = this.baseDateForLabels || new Date().toISOString().split('T')[0];
+				const today = new Date(base + 'T12:00:00');
 				const diff = Math.floor((d - today) / (1000 * 60 * 60 * 24));
 				const labels = ['Today', 'Tomorrow', 'Day after tomorrow'];
 				const label = diff >= 0 && diff < labels.length ? labels[diff] : d.toLocaleDateString('en-GB');
