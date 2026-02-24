@@ -24,6 +24,7 @@ export default defineConfig({
         bypass: (req) => (req.method === 'GET' ? '/index.html' : undefined),
       },
       '/spots': 'http://localhost:8080',
+      '/stats': 'http://localhost:8080',
       '/reservations': 'http://localhost:8080',
     },
   },

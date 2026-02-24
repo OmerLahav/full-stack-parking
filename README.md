@@ -28,6 +28,7 @@ This spins up:
 |--------|----------|-------------|
 | POST | /login | Authenticate and receive JWT. Body: `{ "email", "password" }` |
 | GET | /spots | List all parking spots (requires JWT) |
+| GET | /stats | Peak occupancy hours by hour (requires JWT). Returns `{ "peak_occupancy_hours": [{ "hour": 10, "occupancy": 5 }, ...] }` |
 | GET | /reservations?date=YYYY-MM-DD | List booked reservations for a date (requires JWT) |
 | POST | /reservations | Create reservation (requires JWT). Body: `{ "spot_id", "start_time", "end_time" }` |
 | PUT | /reservations/{id}/complete | Mark reservation as completed (requires JWT) |
@@ -75,7 +76,7 @@ When two users try to reserve the same spot at the same time:
 |-------|----------------|
 | **Database** | `Database.php`, migrations, repositories (CRUD) |
 | **API** | Slim routes, middleware (JWT auth), request/response |
-| **Services** | Business logic (AuthService, ReservationService) |
+| **Services** | Business logic (AuthService, ReservationService, StatsService) |
 | **Background Worker** | Stale reservation checker, runs independently |
 | **WebSocket** | Real-time broadcast, no business logic |
 
@@ -172,7 +173,9 @@ Auth uses a strategy pattern (`AuthStrategyInterface`). To add OIDC without rewr
 ├── index.html              # Frontend entry (source)
 ├── vite.config.js
 ├── src/                    # Backend PHP
+│   ├── Auth/
 │   ├── Config/
+│   ├── Controller/
 │   ├── Database/
 │   ├── Middleware/
 │   ├── Repository/

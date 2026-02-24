@@ -8,13 +8,16 @@ declare(strict_types=1);
 
 use App\Controller\AuthController;
 use App\Controller\ReservationController;
+use App\Controller\StatsController;
 use App\Middleware\JwtAuthMiddleware;
 use App\Repository\ParkingSpotRepository;
 use App\Repository\ReservationRepository;
+use App\Repository\StatsRepository;
 use App\Repository\UserRepository;
 use App\Service\AuthService;
 use App\Service\PubSub\RedisPubSub;
 use App\Service\ReservationService;
+use App\Service\StatsService;
 use Slim\Factory\AppFactory;
 use Slim\Routing\RouteCollectorProxy;
 
@@ -48,6 +51,7 @@ $jwtAuth = new JwtAuthMiddleware($authService);
 
 $authController = new AuthController($authService);
 $reservationController = new ReservationController($reservationService);
+$statsController = new StatsController(new StatsService(new StatsRepository()));
 
 // App setup
 $app = AppFactory::create();
@@ -69,9 +73,10 @@ $app->options('/{routes:.+}', fn($req, $res, $args) => $res);
 // Routes
 $app->post('/login', fn($req, $res, $args) => $authController->login($req));
 
-$app->group('', function (RouteCollectorProxy $group) use ($reservationController) {
+$app->group('', function (RouteCollectorProxy $group) use ($reservationController, $statsController) {
     $group->get('/spots', fn($req, $res, $args) => $reservationController->getSpots($req));
     $group->get('/reservations', fn($req, $res, $args) => $reservationController->getReservations($req));
+    $group->get('/stats', fn($req, $res, $args) => $statsController->getStats($req));
     $group->post('/reservations', fn($req, $res, $args) => $reservationController->createReservation($req));
     $group->put('/reservations/{id}/complete', function ($req, $res, $args) use ($reservationController) {
         $id = (int) ($args['id'] ?? 0);
