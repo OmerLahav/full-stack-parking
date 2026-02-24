@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Auth\AuthStrategyInterface;
+use App\Auth\PasswordAuthStrategy;
 use App\Config\Config;
 use App\Repository\UserRepository;
 use Firebase\JWT\JWT;
@@ -13,20 +15,20 @@ class AuthService
 {
     private const JWT_TTL_SECONDS = 86400; // 24 hours
 
-    public function __construct(private UserRepository $userRepository)
-    {
+    public function __construct(
+        private UserRepository $userRepository,
+        private ?AuthStrategyInterface $passwordStrategy = null,
+    ) {
+        $this->passwordStrategy ??= new PasswordAuthStrategy($userRepository);
     }
 
+    /**
+     * Authenticate with email and password. To add OIDC later, add authenticateFromOidc()
+     * and a new strategy; createToken/validateToken stay unchanged.
+     */
     public function authenticate(string $email, string $password): ?array
     {
-        $user = $this->userRepository->findByEmail($email);
-        if (!$user || !password_verify($password, $user['password_hash'])) {
-            return null;
-        }
-        return [
-            'id' => (int) $user['id'],
-            'email' => $user['email'],
-        ];
+        return $this->passwordStrategy->authenticate(['email' => $email, 'password' => $password]);
     }
 
     public function createToken(array $user): string

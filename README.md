@@ -79,6 +79,19 @@ When two users try to reserve the same spot at the same time:
 | **Background Worker** | Stale reservation checker, runs independently |
 | **WebSocket** | Real-time broadcast, no business logic |
 
+### Adding OIDC (Google/Okta/GitHub) Later
+
+Auth uses a strategy pattern (`AuthStrategyInterface`). To add OIDC without rewriting core logic:
+
+1. **Schema** – Migration: add `auth_provider`, `auth_provider_id` columns; make `password_hash` nullable.
+2. **UserRepository** – Add `findByProviderId(provider, providerId)` and `findOrCreateByOidc(provider, providerId, email)`.
+3. **OidcAuthStrategy** – Implement `AuthStrategyInterface`, use `findOrCreateByOidc`; inject into AuthService.
+4. **AuthService** – Add `authenticateFromOidc(provider, claims)` that calls the OIDC strategy; reuse `createToken()`.
+5. **AuthController** – Add `loginWithOidc()` and route `POST /auth/oidc`.
+6. **Token validation** – Validate the ID token (JWKS) server-side before passing claims to `authenticateFromOidc()`.
+
+`createToken()` and `validateToken()` require no changes; they work with any `['id', 'email']` user array.
+
 ### Assumptions
 
 - **5 parking spots** as specified; **3 time slots per day** (08:00–12:00, 12:00–16:00, 16:00–20:00)
