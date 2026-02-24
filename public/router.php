@@ -11,7 +11,7 @@ $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
 // API routes - forward to api.php (avoid forwarding GET /login, /slots to API - those are SPA routes)
-$apiPaths = ['/login', '/spots', '/reservations'];
+$apiPaths = ['/login', '/spots', '/stats', '/reservations'];
 $isApiPath = in_array($uri, $apiPaths) || preg_match('#^/reservations/\d+/complete$#', $uri);
 $isApiRequest = $isApiPath && ($method !== 'GET' || ($uri !== '/login' && $uri !== '/slots'));
 if ($isApiRequest) {
