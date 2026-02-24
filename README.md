@@ -167,26 +167,32 @@ Auth uses a strategy pattern (`AuthStrategyInterface`). To add OIDC without rewr
 │   ├── index.html          # SPA (built from root)
 │   └── assets/             # Frontend build output
 ├── app/                    # Frontend source (Vanilla JS + Vue)
-│   ├── main.js
-│   ├── core/, pages/, services/
-│   └── style.css
+│   ├── main.js             # App entry point
+│   ├── core/               # Router, base components
+│   ├── pages/              # Route views (Login, Slots)
+│   ├── services/           # Auth, date helpers
+│   ├── api/                # API client (parkingApi)
+│   ├── vue/                # Vue components, composables, bootstrap
+│   └── style.css           # Global styles
 ├── index.html              # Frontend entry (source)
 ├── vite.config.js
 ├── src/                    # Backend PHP
-│   ├── Auth/
-│   ├── Config/
-│   ├── Controller/
-│   ├── Database/
-│   ├── Middleware/
-│   ├── Repository/
-│   ├── Service/
-│   └── Constants/
-├── bin/
-│   ├── migrate.php
-│   ├── stale-checker.php
-│   ├── websocket-server.php
+│   ├── Auth/               # Auth strategy (password, OIDC-ready)
+│   ├── Config/             # Environment config
+│   ├── Controller/         # HTTP request handlers
+│   ├── Database/           # DB connection
+│   ├── Http/               # JSON response helpers
+│   ├── Middleware/         # JWT auth middleware
+│   ├── Repository/         # Data access layer
+│   ├── Service/            # Business logic (Auth, Reservation, Stats, PubSub)
+│   └── Constants/          # App constants
+├── bin/                    # CLI scripts
+│   ├── migrate.php         # Run database migrations
+│   ├── stale-checker.php   # Auto-release worker (every 60s)
+│   ├── websocket-server.php # WebSocket broadcast server
+│   ├── check-reservations.php # Debug: list reservations
 │   └── entrypoint-api.sh
-├── migrations/
+├── migrations/             # SQL migration files
 ├── composer.json
 ├── package.json
 └── docker-compose.yml
